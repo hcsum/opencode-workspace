@@ -1,2 +1,6 @@
 .DS_Store
 *.log
+
+# Accumulated site-specific operating notes (user/environment-specific)
+references/site-patterns/*
+!references/site-patterns/.gitkeep

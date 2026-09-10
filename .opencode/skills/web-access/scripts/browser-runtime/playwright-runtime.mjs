@@ -1,5 +1,4 @@
 import { randomUUID } from 'node:crypto';
-import { chromium } from 'playwright-core';
 
 export class PlaywrightRuntime {
   constructor(config, session, browser) {

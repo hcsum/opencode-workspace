@@ -1,0 +1,13 @@
+{
+  "name": "web-access",
+  "version": "1.0.0",
+  "description": "Agent-oriented browser access skill. Local browsers use direct CDP (zero npm deps); cloud (Browserbase) mode uses playwright-core.",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "optionalDependencies": {
+    "playwright-core": "^1.49.0"
+  }
+}

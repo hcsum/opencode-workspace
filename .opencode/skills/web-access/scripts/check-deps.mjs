@@ -118,15 +118,6 @@ async function ensureProxy(config) {
   };
 }
 
-function runtimeConfigFromInfo(runtime) {
-  return {
-    provider: runtime.provider,
-    browserMode: runtime.browser,
-    browserId: runtime.browserId,
-    dedicatedProfileDir: runtime.dedicatedProfileDir,
-  };
-}
-
 function parseCliFlags(argv) {
   const out = {};
   for (let i = 0; i < argv.length; i += 1) {
@@ -140,7 +131,6 @@ async function main() {
   const node = checkNode();
   const config = loadRuntimeConfig({ ...process.env, ...parseCliFlags(process.argv.slice(2)) });
   const runtime = await resolveRuntimeAvailability(config);
-  const explicitModeRequested = Boolean(config.browserMode);
 
   if (!runtime.ok) {
     fail({
@@ -151,51 +141,22 @@ async function main() {
     });
   }
 
-  let selectedRuntime = runtime;
-  let selectedConfig = runtimeConfigFromInfo(runtime);
-  let proxy = await ensureProxy({ ...config, ...selectedConfig });
+  config.provider = runtime.provider;
+  config.browserMode = runtime.browser;
+  config.browserId = runtime.browserId;
+  config.dedicatedProfileDir = runtime.dedicatedProfileDir;
 
-  if (
-    !proxy.ok &&
-    !explicitModeRequested &&
-    runtime.provider === 'local' &&
-    runtime.browser === 'primary' &&
-    runtime.fallbackLocal
-  ) {
-    const fallbackRuntime = {
-      ok: true,
-      provider: 'local',
-      browser: runtime.fallbackLocal.browserMode,
-      browserId: runtime.fallbackLocal.browserId,
-      dedicatedProfileDir: runtime.fallbackLocal.dedicatedProfileDir,
-      port: runtime.fallbackLocal.port,
-      availableModes: runtime.availableModes,
-      selectedBecause: 'primary_requires_confirmation_fallback_to_dedicated',
-      local: runtime.fallbackLocal,
-    };
-    const fallbackConfig = runtimeConfigFromInfo(fallbackRuntime);
-    const fallbackProxy = await ensureProxy({ ...config, ...fallbackConfig });
-    if (fallbackProxy.ok) {
-      selectedRuntime = fallbackRuntime;
-      selectedConfig = fallbackConfig;
-      proxy = {
-        ...fallbackProxy,
-        fellBackFrom: 'primary',
-        fallbackReason: proxy.reason || 'primary_unavailable_for_immediate_use',
-      };
-    }
-  }
-
+  const proxy = await ensureProxy(config);
   if (!proxy.ok) {
     fail({
       node,
-      provider: selectedRuntime.provider,
-      selectedMode: selectedRuntime.browser,
-      browserId: selectedRuntime.browserId,
-      dedicatedProfileDir: selectedRuntime.dedicatedProfileDir,
-      port: selectedRuntime.port,
-      availableModes: selectedRuntime.availableModes,
-      selectedBecause: selectedRuntime.selectedBecause,
+      provider: runtime.provider,
+      selectedMode: runtime.browser,
+      browserId: runtime.browserId,
+      dedicatedProfileDir: runtime.dedicatedProfileDir,
+      port: runtime.port,
+      availableModes: runtime.availableModes,
+      selectedBecause: runtime.selectedBecause,
       proxyReady: false,
       proxy,
     });
@@ -212,13 +173,13 @@ async function main() {
   printJson({
     ok: true,
     node,
-    provider: selectedRuntime.provider,
-    availableModes: selectedRuntime.availableModes,
-    selectedMode: selectedRuntime.browser,
-    selectedBecause: selectedRuntime.selectedBecause,
-    browserId: selectedRuntime.browserId,
-    dedicatedProfileDir: selectedRuntime.dedicatedProfileDir,
-    port: selectedRuntime.port,
+    provider: runtime.provider,
+    availableModes: runtime.availableModes,
+    selectedMode: runtime.browser,
+    selectedBecause: runtime.selectedBecause,
+    browserId: runtime.browserId,
+    dedicatedProfileDir: runtime.dedicatedProfileDir,
+    port: runtime.port,
     proxyReady: true,
     proxy,
     sitePatterns,

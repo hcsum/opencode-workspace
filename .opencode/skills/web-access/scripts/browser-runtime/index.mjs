@@ -1,9 +1,10 @@
 import { CdpRuntime } from './cdp-runtime.mjs';
-import { PlaywrightRuntime } from './playwright-runtime.mjs';
 import { ALLOWED_BROWSER_IDS, defaultDedicatedProfileDir, resolveProviderFromEnv } from './provider-resolver.mjs';
 import { resolveLocalBrowser } from './providers/local.mjs';
 import { createBrowserbaseSession, releaseBrowserbaseSession } from './providers/browserbase.mjs';
-import { chromium } from 'playwright-core';
+
+// playwright-core 仅 Browserbase 云浏览器模式需要，在对应分支内动态加载。
+// 本地 CDP 浏览器（primary/dedicated）走纯 CDP，不依赖 playwright-core。
 
 export function loadRuntimeConfig(env = process.env) {
   const config = resolveProviderFromEnv(env);
@@ -60,47 +61,13 @@ export async function resolveRuntimeAvailability(config) {
   if (primary) availableModes.push('primary');
   if (dedicated) availableModes.push('dedicated');
   if (primary && dedicated) {
-    if (!primary.cdpVerified) {
-      return {
-        ok: true,
-        provider: 'local',
-        browser: dedicated.browserMode,
-        browserId: dedicated.browserId,
-        dedicatedProfileDir: dedicated.dedicatedProfileDir,
-        port: dedicated.port,
-        availableModes,
-        selectedBecause: 'primary_requires_confirmation_fallback_to_dedicated',
-        local: dedicated,
-      };
-    }
-    return {
-      ok: true,
-      provider: 'local',
-      browser: primary.browserMode,
-      browserId: null,
-      dedicatedProfileDir: null,
-      port: primary.port,
-      availableModes,
-      selectedBecause: 'primary_preferred_when_both_available',
-      local: primary,
-      fallbackLocal: dedicated,
-    };
-  }
-  if (primary) {
-    if (!primary.cdpVerified) {
-      return {
-        ok: false,
-        provider: 'local',
-        reason: 'primary_requires_confirmation',
-        availableModes,
-        requestedMode: null,
-        guidance: '主力浏览器检测到 DevToolsActivePort，但未通过 /json/version 验证；请在主力浏览器确认远程调试授权，或启动 dedicated 浏览器。',
-      };
-    }
-    return { ok: true, provider: 'local', browser: primary.browserMode, browserId: null, dedicatedProfileDir: null, port: primary.port, availableModes, selectedBecause: 'only_primary_available', local: primary };
+    return { ok: true, provider: 'local', browser: dedicated.browserMode, browserId: dedicated.browserId, dedicatedProfileDir: dedicated.dedicatedProfileDir, port: dedicated.port, availableModes, selectedBecause: 'dedicated_preferred_when_both_available', local: dedicated };
   }
   if (dedicated) {
     return { ok: true, provider: 'local', browser: dedicated.browserMode, browserId: dedicated.browserId, dedicatedProfileDir: dedicated.dedicatedProfileDir, port: dedicated.port, availableModes, selectedBecause: 'only_dedicated_available', local: dedicated };
+  }
+  if (primary) {
+    return { ok: true, provider: 'local', browser: primary.browserMode, browserId: null, dedicatedProfileDir: null, port: primary.port, availableModes, selectedBecause: 'only_primary_available', local: primary };
   }
   return {
     ok: false,
@@ -135,6 +102,20 @@ async function resolveFirstDedicatedBrowser(config) {
 
 export async function createRuntime(config, runtimeInfo) {
   if (runtimeInfo.provider === 'browserbase') {
+    let chromium;
+    let PlaywrightRuntime;
+    try {
+      ({ chromium } = await import('playwright-core'));
+      ({ PlaywrightRuntime } = await import('./playwright-runtime.mjs'));
+    } catch (cause) {
+      const error = new Error(
+        'Browserbase（云浏览器）模式需要 playwright-core 依赖。请在 skill 根目录运行 `npm install`（或 `npm install playwright-core`）后重试。本地 CDP 浏览器（primary/dedicated）模式无需此依赖。' +
+        `\n原始错误: ${cause instanceof Error ? cause.message : String(cause)}`
+      );
+      error.code = 'PLAYWRIGHT_CORE_MISSING';
+      error.statusCode = 503;
+      throw error;
+    }
     const session = await createBrowserbaseSession(config);
     const browser = await chromium.connectOverCDP(session.connectUrl);
     const runtime = new PlaywrightRuntime({
