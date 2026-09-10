@@ -1,71 +1,114 @@
 {
-  "_note": "Reference spec: the Ori set. Paths are relative to this file. Floats are fractions of the canvas, ints are absolute pixels (crops index into the capture).",
-  "canvas": { "w": 1290, "h": 2796 },
-  "capture": { "w": 1206, "h": 2622, "screen_radius": 165, "bezel_ratio": 0.0133 },
-  "theme": {
-    "bg": {
-      "type": "gradient",
-      "top": "#9A5936",
-      "bottom": "#5B2E1B",
-      "gamma": 0.85,
-      "glow": { "color": "#B26B42", "box": [-0.295, -0.322, 1.295, 0.422], "strength": 70, "blur": 0.17 },
-      "grain": 0.022
-    },
-    "title_color": "#FBF3E8",
-    "sub_color": "#E4CDBA",
-    "shadow": "#2A1109",
-    "title_weight": "Black",
-    "sub_weight": "Medium"
+ "_note": "Reference spec: the shipped Ori set. Bare captures on a cream ground, no device mockups and no breakout panels; the light capture in frame 02 carries a hairline stroke so it holds its edge against the canvas. Paths are relative to this file. Floats are fractions of the canvas, ints are absolute pixels (crops index into the capture).",
+ "canvas": {
+  "w": 1290,
+  "h": 2796
+ },
+ "capture": {
+  "w": 1206,
+  "h": 2622,
+  "screen_radius": 165
+ },
+ "theme": {
+  "bg": {
+   "type": "gradient",
+   "top": "#FBF5EC",
+   "bottom": "#E6D8C6",
+   "gamma": 0.9,
+   "glow": {
+    "color": "#F7D9BC",
+    "box": [
+     -0.295,
+     -0.322,
+     1.295,
+     0.422
+    ],
+    "strength": 96,
+    "blur": 0.17
+   },
+   "grain": 0.016
   },
-  "layout": {
-    "title_top": 0.068,
-    "title_size": 0.0977,
-    "title_line": 1.09,
-    "title_max_w": 0.876,
-    "sub_gap": 0.0143,
-    "sub_size": 0.0512,
-    "sub_line": 1.22,
-    "sub_max_w": 0.868,
-    "phone_w": 0.7605,
-    "phone_top": 0.2861
+  "title_color": "#241B33",
+  "sub_color": "#5B4F6E",
+  "shadow": "#6B5847",
+  "title_weight": "Black",
+  "sub_weight": "Medium"
+ },
+ "layout": {
+  "title_top": 0.062,
+  "title_size": 0.0955,
+  "title_line": 1.09,
+  "title_max_w": 0.876,
+  "sub_gap": 0.0152,
+  "sub_size": 0.0492,
+  "sub_line": 1.22,
+  "sub_max_w": 0.868,
+  "phone_w": 0.78,
+  "phone_top": 0.247
+ },
+ "frames": [
+  {
+   "id": "01",
+   "capture": "raw/01-no-list-dark.png",
+   "title": [
+    "YOU CAN FOCUS",
+    "ON TODAY"
+   ],
+   "subtitle": "Ori holds the rest, out of sight"
   },
-  "frames": [
+  {
+   "id": "02",
+   "title": [
+    "TWO SCREENS.",
+    "THAT'S THE APP"
+   ],
+   "subtitle": "Today, and everything that isn't",
+   "phones": [
     {
-      "id": "01",
-      "capture": "raw/01-unfinished.png",
-      "title": ["UNFINISHED", "ISN'T FAILED"],
-      "subtitle": "It goes back to Ori and waits. Pick it up whenever.",
-      "panel": { "crop": [42, 1836, 1163, 2165], "width": 0.907, "radius": "auto", "anchor": "element" }
+     "capture": "raw/02a-no-list-light.png",
+     "x": -0.03,
+     "top": 0.335,
+     "w": 0.58,
+     "stroke": {
+      "color": "#A98F76",
+      "width": 0.0075,
+      "alpha": 255
+     }
     },
     {
-      "id": "02",
-      "capture": "raw/02-no-list.png",
-      "title": ["YOU DON'T HAVE TO", "MAINTAIN THE LIST"],
-      "subtitle": "Ori sorts it out",
-      "panel": { "crop": [42, 1836, 1163, 2165], "width": 0.907, "radius": "auto", "anchor": "element" }
-    },
-    {
-      "id": "03",
-      "capture": "raw/03-piles.png",
-      "title": ["YOU CAN FOCUS", "ON TODAY"],
-      "subtitle": "Ori holds the rest",
-      "panel": { "crop": [72, 404, 1132, 1592], "width": 0.814, "radius": "auto", "anchor": "over" }
-    },
-    {
-      "id": "04",
-      "title": ["IT'S EITHER TODAY", "OR IN THE PILE"],
-      "subtitle": "Simple and straightforward",
-      "phones": [
-        { "capture": "raw/03-piles.png", "x": -0.0349, "top": 0.3612, "w": 0.5736 },
-        { "capture": "raw/01-unfinished.png", "x": 0.4574, "top": 0.2718, "w": 0.5736 }
-      ]
-    },
-    {
-      "id": "05",
-      "capture": "raw/05-not-alone.png",
-      "title": ["YOU'RE NOT", "STARTING ALONE"],
-      "subtitle": "Ori breaks it down and stays with you",
-      "panel": { "crop": [46, 856, 1160, 1786], "width": 0.9535, "radius": 0.0496, "anchor": "over" }
+     "capture": "raw/02b-piles-dark-trimmed.png",
+     "x": 0.47,
+     "top": 0.288,
+     "w": 0.58
     }
-  ]
+   ]
+  },
+  {
+   "id": "03",
+   "capture": "raw/03-unfinished-dark.png",
+   "title": [
+    "UNFINISHED",
+    "ISN'T FAILED"
+   ],
+   "subtitle": "It goes back to Ori and waits"
+  },
+  {
+   "id": "04",
+   "capture": "raw/04-not-alone-dark.png",
+   "title": [
+    "YOU'RE NOT",
+    "STARTING ALONE"
+   ],
+   "subtitle": "Ori breaks it down and stays with you"
+  },
+  {
+   "id": "05",
+   "capture": "raw/05-blank-dark.png",
+   "title": [
+    "NOTHING TO SET UP",
+    "NOTHING TO MAINTAIN"
+   ],
+   "subtitle": "Say one thing. Ori holds it from there."
+  }
+ ]
 }

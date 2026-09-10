@@ -32,10 +32,10 @@ No API key, no image model.
 | File | Purpose |
 | --- | --- |
 | `SKILL.md` | The workflow, and the layout rules worth remembering |
-| `compose.py` | Spec-driven composer: background, type, device, breakout panels |
+| `compose.py` | Spec-driven composer: background, type, capture placement, breakout panels |
 | `measure.py` | Pixel probes: an element's real corner radius and content bounds |
 | `contact_sheet.py` | Tiles a rendered set into one reviewable image |
-| `examples/ori.json` | Reference spec (5 frames, breakout panels, a two-phone frame) |
+| `examples/ori.json` | Reference spec: the shipped Ori set (5 bare frames, one of them two-phone) |
 | `scripts/resize_to_appstore.py` | Last resort for images that cannot be re-rendered |
 
 ## Spec

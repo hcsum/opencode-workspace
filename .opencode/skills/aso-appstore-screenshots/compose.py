@@ -177,12 +177,45 @@ def rounded(img, radius, corners=(True, True, True, True)):
     return out
 
 
-def phone(canvas, capture, cap_spec, theme, x, top, screen_w):
-    """Vector device around a real capture. Runs off the canvas when it must --
-    a cropped device bottom reads better than a shrunken screen."""
+def phone(canvas, capture, cap_spec, theme, x, top, screen_w, device="none", stroke=None):
+    """The capture on the canvas, bare by default or wearing a vector device.
+
+    `device: "none"` is the default: no bezel, body, side buttons or extra body
+    radius, just the screen with its own corner radius and a shadow under it.
+    A mockup frame costs about a tenth of every frame's height and says nothing
+    the capture does not already say, so the set reads as the app rather than as
+    a product shot. `device: "phone"` opts back into the vector body.
+
+    `stroke` ({"color", "width", "alpha"}, width a fraction of the screen width)
+    draws a hairline on the screen edge, and only matters with `device: "none"`:
+    a light capture on a light canvas has no bezel left to hold its edge, and
+    without one the two grounds bleed into each other at thumbnail size. Put it
+    on the light phone rather than darkening the whole canvas for one frame.
+
+    Runs off the canvas when it must -- a cropped device bottom reads better
+    than a shrunken screen.
+    """
     cw, ch = cap_spec["w"], cap_spec["h"]
     scale = screen_w / cw
     screen_h = round(ch * scale)
+
+    if device == "none":
+        r = round(cap_spec.get("screen_radius", 165) * scale)
+        drop_shadow(canvas, (x, top, x + screen_w, top + screen_h), r,
+                    theme.get("shadow", "#000000"),
+                    blur=round(screen_w * 0.05), alpha=120,
+                    dy=round(screen_w * 0.028))
+        shot = capture.resize((screen_w, screen_h), Image.Resampling.LANCZOS)
+        canvas.alpha_composite(rounded(shot, r), (x, top))
+        if stroke:
+            w = max(1, round(screen_w * stroke.get("width", 0.004)))
+            layer = Image.new("RGBA", (screen_w, screen_h), (0, 0, 0, 0))
+            ImageDraw.Draw(layer).rounded_rectangle(
+                (w / 2, w / 2, screen_w - 1 - w / 2, screen_h - 1 - w / 2), radius=r,
+                outline=(*rgb(stroke.get("color", "#000000")), stroke.get("alpha", 255)),
+                width=w)
+            canvas.alpha_composite(layer, (x, top))
+        return
     bezel = max(6, round(screen_w * cap_spec.get("bezel_ratio", 0.0133)))
     r_screen = round(cap_spec.get("screen_radius", 165) * scale)
     r_body = r_screen + bezel
@@ -275,17 +308,23 @@ def compose(spec, frame, W, H, root):
     canvas = background(theme, W, H)
     draw_type(canvas, frame, theme, lay, W, H)
 
+    # "none" (default) for a bare capture, or "phone" for the vector body. Set
+    # once on `layout`, overridable per frame and per phone in a multi-phone frame.
+    device = frame.get("device", lay.get("device", "none"))
+
     phones = frame.get("phones")
     if phones:
         for p in phones:
             img = Image.open(root / p["capture"]).convert("RGBA")
-            phone(canvas, img, cap, theme, px(p["x"], W), px(p["top"], H), px(p["w"], W))
+            phone(canvas, img, cap, theme, px(p["x"], W), px(p["top"], H), px(p["w"], W),
+                  p.get("device", device), p.get("stroke", lay.get("stroke")))
     else:
         img = Image.open(root / frame["capture"]).convert("RGBA")
         w = px(frame.get("phone_w", lay["phone_w"]), W)
         top = px(frame.get("phone_top", lay["phone_top"]), H)
         x = (W - w) // 2
-        phone(canvas, img, cap, theme, x, top, w)
+        phone(canvas, img, cap, theme, x, top, w, device,
+              frame.get("stroke", lay.get("stroke")))
         if frame.get("panel"):
             breakout(canvas, img, cap, frame["panel"], theme, x, top, w, W, H, frame["id"])
 

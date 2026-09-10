@@ -1,6 +1,6 @@
 ---
 name: aso-appstore-screenshots
-description: Design and render store screenshot sets from real app captures — App Store, Google Play, or any other size — by starting from the user's own selling points, cropping real UI into breakout panels, and compositing deterministically with a JSON spec. Use when creating, improving, or regenerating app store screenshots, feature graphics, or launch images.
+description: Design and render store screenshot sets from real app captures — App Store, Google Play, or any other size — by starting from the user's own selling points, placing the real captures bare at full width, and compositing deterministically with a JSON spec. Use when creating, improving, or regenerating app store screenshots, feature graphics, or launch images.
 user-invocable: true
 ---
 
@@ -14,6 +14,9 @@ Two rules run through everything below:
 2. **Never generate app UI.** Every pixel of interface in the output is cropped
    from a real capture. Image models redraw UI subtly wrong, and a screenshot
    set that misrepresents the app is worse than a plain one.
+3. **No device mockups.** The capture goes on the canvas bare, at full width —
+   this is `compose.py`'s default and the house style. Do not offer a vector
+   iPhone body unless the user asks for one by name.
 
 ## State
 
@@ -70,13 +73,21 @@ before rendering.
 Pick the background yourself from the app's accent colours, asset catalog and
 capture palette; present it with a one-line reason; the user may override.
 
-Avoid white, light grey, low saturation, and anything close to the app's own UI
-background — the phone has to separate from the canvas. A deep gradient of the
-brand hue plus a soft glow behind the headline beats a flat fill.
+The capture has to separate from the canvas, and with no bezel the canvas is the
+only thing doing it. That is one rule, not a ban on light backgrounds: a light
+ground with a hairline on the light captures (see Bare captures) is fine, and
+often fresher than the deep-brand-hue gradient that every store page uses. What
+is never fine is a canvas within a few steps of the app's own UI background and
+nothing marking the edge.
 
-Keep type slightly off pure white. A cream that echoes the app's own surfaces
-sits in the brand; `#FFFFFF` reads brighter than the capture and pulls focus off
-it. Subhead one step dimmer than the headline, never the same colour.
+Do not darken a whole set to fix one frame. If a single light capture is the
+problem, it gets the stroke; the other four keep the ground you chose.
+
+A gradient plus a soft glow behind the headline beats a flat fill either way.
+Keep type off pure white and off pure black — a cream or a deep ink that echoes
+the app's own surfaces sits in the brand, while `#FFFFFF` reads brighter than the
+capture and pulls focus off it. Subhead one step dimmer than the headline, never
+the same colour.
 
 ## Rendering
 
@@ -96,7 +107,8 @@ Start from `examples/ori.json` and edit it. Its shape:
 - `canvas` — base size. `capture` — the raw capture's pixel size, screen corner
   radius, bezel ratio.
 - `theme` — background (solid or gradient + glow + grain), type colours, shadow.
-- `layout` — type scale and position, phone width and top, as fractions.
+- `layout` — type scale and position, phone width and top, as fractions, plus
+  `device` (`none` by default, `phone` for a vector body).
 - `frames[]` — one per headline: `title` (array of lines), `subtitle`,
   `capture`, and optionally a `panel` or several `phones`.
 
@@ -104,12 +116,41 @@ Start from `examples/ori.json` and edit it. Its shape:
 is what makes one spec render at any size. Crop rectangles index into the
 capture, so they stay ints.
 
+### Bare captures — the default
+
+`"device": "none"` is what `compose.py` renders when nothing says otherwise: no
+vector iPhone body, just the capture with its own screen radius and a shadow.
+The body costs about a tenth of every frame's height and says nothing the
+capture does not already say, so at full width the real UI is legible on its own
+and the set reads as the app rather than as a product shot. `"device": "phone"`
+on `layout`, a frame, or one phone opts back into the mockup; only reach for it
+when the user asks.
+
+Bare takes the bezel away, though, and the bezel was what held the capture's edge.
+A light capture on a light canvas then has nothing separating the two, and at
+thumbnail size they bleed together. Give that capture a hairline instead of
+darkening the whole canvas for one frame:
+
+```json
+{ "capture": "raw/02a-today-light.png", "x": -0.03, "top": 0.335, "w": 0.58,
+  "stroke": { "color": "#A98F76", "width": 0.0075, "alpha": 255 } }
+```
+
+`width` is a fraction of the capture's placed width. Check it in the contact
+sheet, not at full size — a stroke that reads at 1290px often vanishes at
+thumbnail scale.
+
 ### Breakout panels
 
-The move that makes a set look designed rather than assembled: crop one real UI
-element out of the capture, scale it up so it overhangs both phone edges, drop a
-soft shadow under it. It is still real UI — nothing is redrawn — but the thing
-the headline is about is now legible at thumbnail size.
+Crop one real UI element out of the capture, scale it up so it overhangs both
+phone edges, drop a soft shadow under it. Still real UI — nothing is redrawn —
+but the thing the headline is about is enlarged.
+
+This existed to rescue legibility from a shrunken screen, and a bare capture at
+full width does not have that problem. Reach for it only when one element has to
+carry a headline that the screen at full size does not already sell, or when
+several frames show the same screen and nothing else tells them apart. On a bare
+set the default is no panel.
 
 ```json
 "panel": { "crop": [72, 404, 1132, 1592], "width": 0.814, "radius": "auto", "anchor": "over" }
@@ -196,7 +237,8 @@ headline is not readable in the contact sheet, it is not readable in the store.
 - Real app screens, never generated UI.
 - Benefits over features; specific over generic.
 - One idea per frame, and it must be legible at thumbnail size.
-- Consistency across the set: one background, one type scale, one panel style.
+- Consistency across the set: one background, one type scale, one placement.
+- No device mockups unless asked; the capture goes on bare at full width.
 - No empty states, loading screens, login or settings, unless that screen is
   genuinely the product's conversion moment.
 - Every delivered file matches the store's dimensions exactly.
