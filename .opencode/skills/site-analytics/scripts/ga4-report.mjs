@@ -201,10 +201,32 @@ async function buildReports(accessToken, propertyId, args) {
     { name: `last${args.days}d`, startDate: `${args.days}daysAgo`, endDate: "yesterday" },
     { name: `recent${args.recentDays}d`, startDate: `${args.recentDays}daysAgo`, endDate: "yesterday" },
   ];
+  const summaryDateRanges = [
+    ...dateRanges,
+    {
+      name: `previous${args.recentDays}d`,
+      startDate: `${args.recentDays * 2}daysAgo`,
+      endDate: `${args.recentDays + 1}daysAgo`,
+    },
+  ];
   const pFilter = pageFilter(args.path);
   const eFilter = eventFilter(args.events);
 
   const reports = {};
+  reports.summary = table(await runReport(accessToken, propertyId, {
+    dateRanges: summaryDateRanges,
+    metrics: [
+      { name: "activeUsers" },
+      { name: "sessions" },
+      { name: "engagedSessions" },
+      { name: "engagementRate" },
+      { name: "averageSessionDuration" },
+      { name: "userEngagementDuration" },
+      { name: "screenPageViews" },
+      { name: "eventCount" },
+    ],
+    ...(pFilter ? { dimensionFilter: pFilter } : {}),
+  }));
   reports.pages = table(await runReport(accessToken, propertyId, {
     dateRanges,
     dimensions: [{ name: "pagePath" }],
@@ -227,7 +249,7 @@ async function buildReports(accessToken, propertyId, args) {
       metrics: [{ name: "eventCount" }, { name: "activeUsers" }],
       dimensionFilter: andFilter(pFilter, eFilter),
       orderBys: [{ metric: { metricName: "eventCount" }, desc: true }],
-      limit: 200,
+      limit: 10000,
     }));
 
     reports.allInstrumentedEvents = table(await runReport(accessToken, propertyId, {

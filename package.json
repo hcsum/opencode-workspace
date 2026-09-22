@@ -8,10 +8,6 @@
     "bridge": "bash scripts/bridge.sh",
     "tui": "mkdir -p .data && OPENCODE_DB=\"$PWD/.data/opencode.db\" opencode .",
     "start": "bash scripts/server.sh",
-    "cf:agent-status:check": "wrangler deploy --dry-run --config cloudflare/agent-status-worker/wrangler.jsonc",
-    "cf:agent-status:deploy": "wrangler deploy --config cloudflare/agent-status-worker/wrangler.jsonc",
-    "cf:agent-status:dev": "wrangler dev --config cloudflare/agent-status-worker/wrangler.jsonc",
-    "cf:agent-status:types": "wrangler types cloudflare/agent-status-worker/worker-configuration.d.ts --config cloudflare/agent-status-worker/wrangler.jsonc",
     "dev": "tsx src/index.ts",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
@@ -25,8 +21,7 @@
     "imapflow": "^1.4.7",
     "mailparser": "^3.9.14",
     "nodemailer": "^9.0.3",
-    "playwright-core": "^1.54.1",
-    "undici": "^7.25.0"
+    "playwright-core": "^1.54.1"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
@@ -36,8 +31,7 @@
     "marked": "^18.0.10",
     "prettier": "^3.9.1",
     "tsx": "^4.20.6",
-    "typescript": "^5.8.3",
-    "wrangler": "^4.106.0"
+    "typescript": "^5.8.3"
   },
   "engines": {
     "node": ">=22"

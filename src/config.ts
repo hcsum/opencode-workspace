@@ -155,14 +155,6 @@ export function loadConfig(): AppConfig {
     publicActivityDir:
       process.env.PUBLIC_ACTIVITY_DIR?.trim() ||
       path.join(".data", "public-activity"),
-    publicActivitySyncUrl:
-      process.env.PUBLIC_ACTIVITY_SYNC_URL?.trim() || undefined,
-    publicActivitySyncToken:
-      process.env.PUBLIC_ACTIVITY_SYNC_TOKEN?.trim() || undefined,
-    publicActivityHeartbeatMs:
-      Number(process.env.PUBLIC_ACTIVITY_HEARTBEAT_MS) || 60000,
-    publicActivitySyncTimeoutMs:
-      Number(process.env.PUBLIC_ACTIVITY_SYNC_TIMEOUT_MS) || 10000,
     userTimezone: process.env.USER_TIMEZONE?.trim() || "UTC",
     schedulerApiPort: Number(process.env.SCHEDULER_API_PORT) || 4097,
     deliveryApiPort: Number(process.env.GMAIL_DELIVERY_PORT) || 4098,

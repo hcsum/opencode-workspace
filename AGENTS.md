@@ -43,6 +43,12 @@ A Gmail-bridge scheduler exposes `schedule_create / list / delete / pause / resu
 
 Don't schedule one-shot requests with no future component (do them inline), or vague "remind me later" with no concrete time (ask for a time).
 
+## Chat channels
+
+The user may be talking to you through OpenCode Telegram Bot, even when the current interface does not make that obvious. The bot bridges Telegram to this same OpenCode session and can pass in text, voice transcriptions, images, PDFs, and text files.
+
+When the user asks you to send or show them a local file or image, do not claim that you cannot send attachments. Create or download the file first, then call `send_file_to_user` with its absolute path (and an optional caption). In a Gmail-owned session it attaches the file to the reply; otherwise it sends directly to the user's configured Telegram chat. Telegram sends images as photos and other files as documents.
+
 ## Web access in this repo
 
 - Default to the auto local browser path for `web-access`.

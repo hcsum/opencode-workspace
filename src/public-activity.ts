@@ -128,11 +128,6 @@ export interface PublicActivityFile {
   };
 }
 
-export interface PublicActivitySnapshot {
-  current: PublicCurrentState;
-  eventsFile: PublicActivityFile;
-}
-
 interface DeploymentInfo {
   commitSha?: string;
   commitMessage?: string;
@@ -154,7 +149,6 @@ export class PublicEventPublisher {
   private readonly activeRunSources = new Map<string, PublicSource>();
   private readonly maxEvents: number;
   private readonly deploymentInfo?: DeploymentInfo;
-  private readonly snapshotListener?: (snapshot: PublicActivitySnapshot) => void;
   private events: PublicActivityEntry[] = [];
   private current: PublicCurrentState;
   private channelStates = new Map<PublicSource, PublicChannelState>();
@@ -165,11 +159,9 @@ export class PublicEventPublisher {
     dir: string,
     maxEvents = DEFAULT_MAX_EVENTS,
     deploymentInfo?: DeploymentInfo,
-    snapshotListener?: (snapshot: PublicActivitySnapshot) => void,
   ) {
     this.maxEvents = maxEvents > 0 ? maxEvents : DEFAULT_MAX_EVENTS;
     this.deploymentInfo = deploymentInfo;
-    this.snapshotListener = snapshotListener;
     fs.mkdirSync(dir, { recursive: true });
     this.currentPath = path.join(dir, "current.json");
     this.eventsPath = path.join(dir, "events.json");
@@ -490,16 +482,6 @@ export class PublicEventPublisher {
     const eventsFile = this.buildEventsFile();
     writeJsonAtomic(this.currentPath, this.current);
     writeJsonAtomic(this.eventsPath, eventsFile);
-    if (!this.snapshotListener) return;
-
-    try {
-      this.snapshotListener({
-        current: cloneCurrentState(this.current),
-        eventsFile: cloneEventsFile(eventsFile),
-      });
-    } catch (error) {
-      console.error("[public-activity] snapshot listener failed", error);
-    }
   }
 
   private buildEventsFile(): PublicActivityFile {
@@ -738,31 +720,6 @@ function normalizeCurrentState(current: PublicCurrentState): PublicCurrentState 
       : { ...DEFAULT_STATS },
     ...(Array.isArray(current.channels)
       ? { channels: current.channels.map((channel) => ({ ...channel })) }
-      : {}),
-  };
-}
-
-function cloneCurrentState(current: PublicCurrentState): PublicCurrentState {
-  return {
-    ...current,
-    stats: { ...current.stats },
-    ...(current.channels ? { channels: current.channels.map((channel) => ({ ...channel })) } : {}),
-  };
-}
-
-function cloneEventsFile(eventsFile: PublicActivityFile): PublicActivityFile {
-  return {
-    updatedAt: eventsFile.updatedAt,
-    events: eventsFile.events.map((entry) => ({ ...entry })),
-    ...(eventsFile.meta
-      ? {
-          meta: {
-            ...eventsFile.meta,
-            ...(eventsFile.meta.channels
-              ? { channels: eventsFile.meta.channels.map((channel) => ({ ...channel })) }
-              : {}),
-          },
-        }
       : {}),
   };
 }

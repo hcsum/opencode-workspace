@@ -59,10 +59,6 @@ export interface AppConfig {
   };
   stateFile: string;
   publicActivityDir: string;
-  publicActivitySyncUrl?: string;
-  publicActivitySyncToken?: string;
-  publicActivityHeartbeatMs: number;
-  publicActivitySyncTimeoutMs: number;
   userTimezone: string;
   schedulerApiPort: number;
   deliveryApiPort: number;
